@@ -101,6 +101,24 @@ const argv = require('yargs')
                 process.exit(1);
             }
         }
+    }).command({
+        command: 'snapshot <url> [output]',
+        desc: 'Capture rendered HTML of a file or URL',
+        builder: {
+            ...commonOptions,
+            'viewport': {
+                describe: 'Set viewport to a given size, e.g. 800x600',
+                type: 'string'
+            }
+        },
+        handler: async argv => {
+            try {
+                await snapshot(argv);
+            } catch (err) {
+                console.error('Failed to capture HTML:', err);
+                process.exit(1);
+            }
+        }
     })
     .demandCommand()
     .help()
@@ -182,6 +200,49 @@ async function screenshot(argv) {
 
     if (!argv.output) {
         await process.stdout.write(buffer);
+    }
+
+    console.error('Done');
+    await browser.close();
+}
+
+async function snapshot(argv) {
+    const browser = await puppeteer.launch(buildLaunchOptions(argv));
+    const page = await browser.newPage();
+    const url = isUrl(argv.url) ? parseUrl(argv.url).toString() : fileUrl(argv.url);
+
+    if (argv.viewport) {
+        const formatMatch = argv.viewport.match(/^(?<width>\d+)[xX](?<height>\d+)$/);
+
+        if (!formatMatch) {
+            console.error('Option --viewport must be in the format ###x### e.g. 800x600');
+            process.exit(1);
+        }
+
+        const { width, height } = formatMatch.groups;
+        console.error(`Setting viewport to ${width}x${height}`);
+        await page.setViewport({
+            width: parseInt(width),
+            height: parseInt(height)
+        });
+    }
+
+    if (argv.cookie) {
+        console.error(`Setting cookies`);
+        await page.setCookie(...buildCookies(argv));
+    }
+
+    console.error(`Loading ${url}`);
+    await page.goto(url, buildNavigationOptions(argv));
+
+    console.error(`Writing ${argv.output || 'STDOUT'}`);
+    const html = await page.content();
+
+    if (argv.output) {
+        const fs = require('fs');
+        await fs.promises.writeFile(argv.output, html);
+    } else {
+        process.stdout.write(html);
     }
 
     console.error('Done');

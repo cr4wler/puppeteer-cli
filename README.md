@@ -53,6 +53,22 @@ Options:
   --viewport         Set viewport to a given size, e.g. 800x600         [string]
 ```
 
+```bash
+puppeteer snapshot <url> [output]
+
+Capture rendered HTML of a file or URL
+
+Options:
+  --version          Show version number                               [boolean]
+  --help             Show help                                         [boolean]
+  --sandbox                                            [boolean] [default: true]
+  --timeout                                            [number] [default: 30000]
+  --wait-until                                        [string] [default: "load"]
+  --cookie           Set a cookie in the form "key:value". May be repeated for
+                     multiple cookies.                                  [string]
+  --viewport         Set viewport to a given size, e.g. 800x600         [string]
+```
+
 ## Example
 
 ``` shell
@@ -62,6 +78,8 @@ puppeteer print https://github.com/JarvusInnovations/puppeteer-cli puppeteer-cli
 puppeteer screenshot mypage.html myscreenshot.png # local file
 puppeteer screenshot https://jarv.us myscreenshot.png # url
 puppeteer screenshot https://jarv.us myscreenshot.png --viewport 300x200
+puppeteer snapshot mypage.html rendered.html # capture rendered HTML of local file
+puppeteer snapshot https://jarv.us rendered.html # capture rendered HTML of URL
 ```
 
 ## Roadmap
